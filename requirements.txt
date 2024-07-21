@@ -1,5 +1,5 @@
 streamlit
 requests
-bs4
-re
+beautifulsoup4
 google-generativeai
+llama-index
