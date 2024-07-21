@@ -5,6 +5,15 @@ import re
 import os
 import google.generativeai as genai
 
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 
 GOOGLE_API_KEY = "AIzaSyAXikz6RA-CZqLUgPuGf7xawwEs8JV72r4"
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
