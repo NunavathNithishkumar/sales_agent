@@ -34,7 +34,7 @@ def scrape_data(url):
 
 def clean_text(text):
     # Remove URLs
-    text = re.sub(r'http\S+', '', text)  # Remove URLs using regular expression
+    text = re.sub(r'http\S+', '', text) 
     text = text.replace('\n', ' ').strip()
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'(Overview|Specifications|Dimensions|Weight|Features|Details):', r'\n\1:', text)
@@ -60,7 +60,7 @@ def generate_answer(question, context):
 def main():
     st.title("AI Sales Agent")
     
-    # URL input
+   
     url = st.text_input("Enter the product URL")
     
     # File uploader for questions
@@ -77,7 +77,7 @@ def main():
             
             # Generate answers
             for question in questions:
-                if question.strip():  # Ensure the question is not empty
+                if question.strip():
                     answer = generate_answer(question, final_text)
                     st.subheader(f"Question: {question}")
                     st.write(f"Answer: {answer}")
