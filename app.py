@@ -14,24 +14,16 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-# Load environment variables
 load_dotenv()
 
 # Configure API keys
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 FIRECRAWL_API_KEY = os.getenv('FIRECRAWL_API_KEY')
-
-# Set the environment variable for Google API key
 os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY 
-
-# Configure Google Generative AI
 genai.configure(api_key=GOOGLE_API_KEY)
 
 def scrape_data(url):
-    # Initialize the FirecrawlApp with your API key
     app = FirecrawlApp(api_key=FIRECRAWL_API_KEY)
-    
-    # Scrape a single URL
     scraped_data = app.scrape_url(url)
     
     # Check if 'markdown' key exists in the scraped data
@@ -40,7 +32,6 @@ def scrape_data(url):
     else:
         raise KeyError("The key 'markdown' does not exist in the scraped data.")
 
-# Function to clean text
 def clean_text(text):
     # Remove URLs
     text = re.sub(r'http\S+', '', text)  # Remove URLs using regular expression
@@ -49,7 +40,7 @@ def clean_text(text):
     text = re.sub(r'(Overview|Specifications|Dimensions|Weight|Features|Details):', r'\n\1:', text)
     return text
 
-# Function to clean product info
+
 def clean_product_info(data):
     # Handle the case where data is a string
     if isinstance(data, str):
@@ -60,7 +51,7 @@ def clean_product_info(data):
         cleaned_data[key] = clean_text(value) if value != "Product info not found." else value
     return cleaned_data
 
-# Function to generate answers using Google Generative AI
+
 def generate_answer(question, context):
     model = genai.GenerativeModel(model_name="gemini-1.5-flash")
     response = model.generate_content(f"Answer the following question based on the context provided:\n\nContext: {context}\n\nQuestion: {question}")
@@ -80,11 +71,7 @@ def main():
         try:
             scraped_markdown = scrape_data(url)
             final_text = clean_product_info(scraped_markdown)
-            
-            # Display the scraped and cleaned data
-            # st.write("Scraped Data:")
-            # st.text_area("Cleaned Product Information", final_text, height=200)
-            
+                        
             # Read and process the uploaded file
             questions = uploaded_file.read().decode("utf-8").splitlines()
             
