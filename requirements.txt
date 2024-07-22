@@ -3,3 +3,6 @@ requests
 beautifulsoup4
 google-generativeai
 llama-index
+firecrawl-py
+python-dotenv
+openpyxl
