@@ -1,104 +1,10 @@
-# import streamlit as st
-# import requests
-# from bs4 import BeautifulSoup
-# import re
-# import os
-# import google.generativeai as genai
-
-# hide_st_style = """
-#             <style>
-#             #MainMenu {visibility: hidden;}
-#             footer {visibility: hidden;}
-#             header {visibility: hidden;}
-#             </style>
-#             """
-# st.markdown(hide_st_style, unsafe_allow_html=True)
-
-
-# GOOGLE_API_KEY = "AIzaSyAXikz6RA-CZqLUgPuGf7xawwEs8JV72r4"
-# os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
-# genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-
-# PRODUCT_URL = 'https://www.tp-link.com/in/home-networking/smart-plug/hs100/'
-
-# # Function to scrape product information
-# def scrape_product_info(url):
-#     response = requests.get(url)
-#     soup = BeautifulSoup(response.content, 'html.parser')
-
-#     product_info = {}
-
-#     # Extract data from 'product-info' class
-#     product_info_section = soup.find('div', {'class': 'product-info'})
-#     product_info['product_info'] = product_info_section.get_text(strip=True) if product_info_section else "Product info not found."
-
-#     # Extract data from 'specifications' class
-#     specifications_section = soup.find('div', {'class': 'specifications'})
-#     product_info['specifications'] = specifications_section.get_text(strip=True) if specifications_section else "Specifications not found."
-
-#     # Extract data from 'overview' class
-#     overview_section = soup.find('div', {'class': 'overview'})
-#     product_info['overview'] = overview_section.get_text(strip=True) if overview_section else "Overview not found."
-
-#     return product_info
-
-# # Function to clean text
-# def clean_text(text):
-#     text = text.replace('\n', ' ').strip()
-#     text = re.sub(r'\s+', ' ', text)
-#     text = re.sub(r'(Overview|Specifications|Dimensions|Weight|Features|Details):', r'\n\1:', text)
-#     return text
-
-# # Function to clean product info
-# def clean_product_info(data):
-#     cleaned_data = {}
-#     for key, value in data.items():
-#         cleaned_data[key] = clean_text(value) if value != "Product info not found." else value
-#     return cleaned_data
-
-# # Function to generate answers using Google Generative AI
-# def generate_answer(question, context):
-#     model = genai.GenerativeModel(model_name="gemini-1.5-flash")
-#     response = model.generate_content(f"Answer the following question based on the context provided :\n\nContext: {context}\n\nQuestion: {question}.")
-#     return response.text
-
-# # Streamlit app
-# def main():
-#     st.title("Product Information Q&A")
-
-#     # Upload file
-#     uploaded_file = st.file_uploader("Choose a text file with questions", type="txt")
-
-#     if uploaded_file:
-#         product_info = scrape_product_info(PRODUCT_URL)
-#         cleaned_data = clean_product_info(product_info)
-
-#         questions = uploaded_file.read().decode("utf-8").splitlines()
-
-#         # Process questions
-#         for question in questions:
-#             context = ' '.join(cleaned_data.values())
-#             answer = generate_answer(question, context)
-#             st.write(f"Question: {question}")
-#             st.write(f"Answer: {answer}")
-
-# if __name__ == "__main__":
-#     main()
-
-
-
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
+from firecrawl import FirecrawlApp
+from dotenv import load_dotenv
+import os 
 import re
-import os
 import google.generativeai as genai
 
-# Configure Google API
-GOOGLE_API_KEY = "AIzaSyAXikz6RA-CZqLUgPuGf7xawwEs8JV72r4"
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
 hide_st_style = """
             <style>
@@ -108,30 +14,36 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+# Load environment variables
+load_dotenv()
 
-# Function to scrape product information
-def scrape_product_info(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+# Configure API keys
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+FIRECRAWL_API_KEY = os.getenv('FIRECRAWL_API_KEY')
 
-    product_info = {}
+# Set the environment variable for Google API key
+os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY 
 
-    # Extract data from 'product-info' class
-    product_info_section = soup.find('div', {'class': 'product-info'})
-    product_info['product_info'] = product_info_section.get_text(strip=True) if product_info_section else "Product info not found."
+# Configure Google Generative AI
+genai.configure(api_key=GOOGLE_API_KEY)
 
-    # Extract data from 'specifications' class
-    specifications_section = soup.find('div', {'class': 'specifications'})
-    product_info['specifications'] = specifications_section.get_text(strip=True) if specifications_section else "Specifications not found."
-
-    # Extract data from 'overview' class
-    overview_section = soup.find('div', {'class': 'overview'})
-    product_info['overview'] = overview_section.get_text(strip=True) if overview_section else "Overview not found."
-
-    return product_info
+def scrape_data(url):
+    # Initialize the FirecrawlApp with your API key
+    app = FirecrawlApp(api_key=FIRECRAWL_API_KEY)
+    
+    # Scrape a single URL
+    scraped_data = app.scrape_url(url)
+    
+    # Check if 'markdown' key exists in the scraped data
+    if 'markdown' in scraped_data:
+        return scraped_data['markdown']
+    else:
+        raise KeyError("The key 'markdown' does not exist in the scraped data.")
 
 # Function to clean text
 def clean_text(text):
+    # Remove URLs
+    text = re.sub(r'http\S+', '', text)  # Remove URLs using regular expression
     text = text.replace('\n', ' ').strip()
     text = re.sub(r'\s+', ' ', text)
     text = re.sub(r'(Overview|Specifications|Dimensions|Weight|Features|Details):', r'\n\1:', text)
@@ -139,6 +51,10 @@ def clean_text(text):
 
 # Function to clean product info
 def clean_product_info(data):
+    # Handle the case where data is a string
+    if isinstance(data, str):
+        return clean_text(data)
+    
     cleaned_data = {}
     for key, value in data.items():
         cleaned_data[key] = clean_text(value) if value != "Product info not found." else value
@@ -150,27 +66,37 @@ def generate_answer(question, context):
     response = model.generate_content(f"Answer the following question based on the context provided:\n\nContext: {context}\n\nQuestion: {question}")
     return response.text
 
-# Streamlit app
 def main():
-    st.title("Product Information Q&A")
-
-    # Upload file
-    uploaded_file = st.file_uploader("Choose a text file with questions", type="txt")
+    st.title("AI Sales Agent")
+    
+    # URL input
     url = st.text_input("Enter the product URL")
-
-    if uploaded_file and url:
-        product_info = scrape_product_info(url)
-        cleaned_data = clean_product_info(product_info)
-
-        questions = uploaded_file.read().decode("utf-8").splitlines()
-
-        # Process questions
-        for question in questions:
-            context = ' '.join(cleaned_data.values())
-            answer = generate_answer(question, context)
-            st.write(f"Question: {question}")
-            st.write(f"Answer:{answer}")
+    
+    # File uploader for questions
+    uploaded_file = st.file_uploader("Upload a file containing questions", type="txt")
+    
+    if st.button("Generate Answers") and url and uploaded_file:
+        # Scrape data from URL
+        try:
+            scraped_markdown = scrape_data(url)
+            final_text = clean_product_info(scraped_markdown)
+            
+            # Display the scraped and cleaned data
+            # st.write("Scraped Data:")
+            # st.text_area("Cleaned Product Information", final_text, height=200)
+            
+            # Read and process the uploaded file
+            questions = uploaded_file.read().decode("utf-8").splitlines()
+            
+            # Generate answers
+            for question in questions:
+                if question.strip():  # Ensure the question is not empty
+                    answer = generate_answer(question, final_text)
+                    st.subheader(f"Question: {question}")
+                    st.write(f"Answer: {answer}")
+        
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
-
