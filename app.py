@@ -53,7 +53,7 @@ def clean_product_info(data):
 
 
 def generate_answer(question, context):
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+    model = genai.GenerativeModel(model_name="gemini-1.0-pro")
     response = model.generate_content(f"Answer the following question based on the context provided:\n\nContext: {context}\n\nQuestion: {question}")
     return response.text
 
